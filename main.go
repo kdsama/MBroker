@@ -57,24 +57,26 @@ func (s *Server) ReadLoop(conn net.Conn) {
 		if e != nil {
 			continue
 		}
-		e = s.process(string(msg[:n]))
-		if e != nil {
-			conn.Write([]byte("Fuck you\n"))
-		}
-		conn.Write([]byte("Thank you"))
+		s.process(string(msg[:n]), conn)
+
 	}
 }
 
-func (s *Server) process(msg string) error {
-	msgFields := strings.Split(msg, "")
+func (s *Server) process(msg string, conn net.Conn) error {
+	msgFields := strings.Split(msg, " ")
 	if len(msgFields) <= 1 {
 
 		return fmt.Errorf("What are you on about ")
 	}
+	fmt.Println(msgFields[0], msg)
 	switch msgFields[0] {
-	case "add":
+	case "publish":
 		// How to add connection here
-		s.ps.AddTopic(msgFields[1], nil)
+		fmt.Println("We are gonna publish from here these things ", msgFields[1], []byte(msg[len(msgFields[1])+len(msgFields[2])-1:]))
+		s.ps.Publish(msgFields[1], []byte(msg[len(msgFields[1])+len(msgFields[2])-1:]))
+		conn.Write([]byte("ok"))
+	case "subscribe":
+		s.ps.AddConnectionToTopic(msgFields[1], conn.RemoteAddr())
 	}
 	return nil
 }

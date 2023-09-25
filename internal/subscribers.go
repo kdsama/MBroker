@@ -1,13 +1,14 @@
 package internal
 
 import (
+	"fmt"
 	"net"
 	"sync"
 )
 
 type Connections struct {
-	conn *net.Conn
-	name string
+	Addr string
+	Port string
 }
 
 type ConnectionService struct {
@@ -23,20 +24,25 @@ func New() *ConnectionService {
 }
 
 func (s *ConnectionService) Add(addr net.Addr) error {
-	conn, err := net.Dial(addr.Network(), addr.String())
-	if err != nil {
-		return err
-	}
 
-	s.connectionMap[addr.String()] = &Connections{
-		conn: &conn,
-		name: addr.String(),
+	if ad, ok := addr.(*net.TCPAddr); ok {
+		s.connectionMap[addr.String()] = &Connections{
+			Addr: ad.IP.String(),
+			Port: "5959",
+		}
+		return nil
 	}
 
 	return nil
 }
 
 func (c *Connections) Send(data []byte) error {
-	_, e := (*c.conn).Write(data)
+	fmt.Println("Are we coming here or not ???/")
+	conn, e := net.Dial("tcp", c.Addr+c.Port)
+	if e != nil {
+		fmt.Println(e)
+		return e
+	}
+	_, e = conn.Write(data)
 	return e
 }
