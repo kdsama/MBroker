@@ -37,7 +37,7 @@ func (s *ConnectionService) Add(addr net.Addr) error {
 }
 
 func (c *Connections) Send(data []byte) error {
-	fmt.Println("Are we coming here or not ???/")
+
 	conn, e := net.Dial("tcp", c.Addr+c.Port)
 	if e != nil {
 		fmt.Println(e)
