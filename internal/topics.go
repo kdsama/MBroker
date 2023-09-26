@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"net"
+	"runtime"
 )
 
 type TopicMessage []byte
@@ -71,6 +72,7 @@ func (t *Topic) ReceiveMsg() {
 	for msg := range t.msgch {
 		for i := range t.connections {
 			t.connections[i].Send(msg)
+			runtime.Gosched()
 		}
 	}
 }

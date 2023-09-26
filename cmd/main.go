@@ -1,10 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
-	"strings"
 
 	"github.com/kdsama/mbroker/internal"
 )
@@ -57,28 +57,31 @@ func (s *Server) ReadLoop(conn net.Conn) {
 		if e != nil {
 			continue
 		}
-		s.process(string(msg[:n]), conn)
+		s.process(msg[:n], conn)
 
 	}
 }
 
-func (s *Server) process(msg string, conn net.Conn) error {
-	msgFields := strings.Split(msg, " ")
-	if len(msgFields) <= 1 {
+func (s *Server) process(msg []byte, conn net.Conn) error {
+	var data struct {
+		Type  string `json:"type"`
+		Topic string `json:"topic"`
+		Value string `json:"value"`
+	}
+	fmt.Println(string(msg))
+	if err := json.Unmarshal(msg, &data); err != nil {
 
-		return fmt.Errorf("what are you on about ")
+		return err
 	}
-	for _, v := range msgFields {
-		fmt.Println(v)
-	}
-	switch msgFields[0] {
+
+	switch data.Type {
 	case "publish":
 		// How to add connection here
 
-		s.ps.Publish(msgFields[1], []byte(strings.Join(msgFields[2:], " ")))
+		s.ps.Publish(data.Topic, []byte(data.Value))
 		conn.Write([]byte("ok"))
 	case "subscribe":
-		s.ps.AddConnectionToTopic(msgFields[1], conn.RemoteAddr())
+		s.ps.AddConnectionToTopic(data.Topic, conn.RemoteAddr())
 	}
 	return nil
 }

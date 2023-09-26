@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -65,11 +66,28 @@ func main() {
 		log.Fatal(err)
 	}
 	defer conn.Close()
+	type data struct {
+		Type  string `json:"type"`
+		Topic string `json:"topic"`
+		Value string `json:"value"`
+	}
+	p := data{
+		Type:  "subscribe",
+		Topic: "topic1",
+		Value: "Randome Value ",
+	}
+	q := data{
+		Type:  "publish",
+		Topic: "topic1",
+		Value: "Randome Value ",
+	}
+	p1, _ := json.Marshal(p)
+	q1, _ := json.Marshal(q)
 
 	go fn()
-	conn.Write([]byte("subscribe topic1"))
+	conn.Write(p1)
 	time.Sleep(1 * time.Second)
-	conn.Write([]byte("publish topic1 what the hell"))
+	conn.Write(q1)
 
 	for {
 		i := 0
